@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto-Registration Studio | ระบบยืนยันลงทะเบียนอัตโนมัติ (ใช้ข้อมูลเดิม)</title>
+    <title>AutoReg Studio | ระบบยืนยันลงทะเบียนอัตโนมัติ (ใช้ข้อมูลเดิม)</title>
     <meta name="description" content="ระบบยืนยันสิทธิ์ลงทะเบียนอัตโนมัติจากรหัสนักเรียนในไฟล์ Excel สุ่มลำดับคิวและสุ่มเวลาธรรมชาติ">
 
     <!-- Fonts -->
@@ -31,9 +31,6 @@
                 </div>
             </div>
             <div class="header-actions">
-                <button id="btn-download-template" class="btn btn-outline">
-                    <i class="fa-solid fa-file-arrow-down"></i> ดาวน์โหลดเทมเพลต Excel
-                </button>
                 <div class="status-indicator">
                     <span class="status-dot"></span>
                     <span id="system-status-text">พร้อมใช้งาน</span>
@@ -81,7 +78,7 @@
                 <div class="control-panel">
                     <!-- Upload Box -->
                     <div class="card card-glow">
-                        <div class="card-header">
+                        <div class="card-header justify-between">
                             <h2><i class="fa-solid fa-cloud-arrow-up"></i> นำเข้ารหัสนักศึกษา (Excel / CSV)</h2>
                         </div>
                         <div class="card-body">
@@ -92,9 +89,14 @@
                                 </div>
                                 <p class="drop-title">ลากไฟล์ Excel (.xlsx) หรือ CSV มาวางที่นี่</p>
                                 <span class="drop-subtitle">มีแค่คอลัมน์รหัสนักเรียน 1 คอลัมน์ก็ใช้งานได้ทันที</span>
-                                <button type="button" class="btn btn-secondary mt-3" onclick="document.getElementById('file-input').click()">
-                                    <i class="fa-solid fa-folder-open"></i> เลือกไฟล์
-                                </button>
+                                <div class="upload-btn-group mt-3" style="display: flex; gap: 8px; justify-content: center;">
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('file-input').click()">
+                                        <i class="fa-solid fa-folder-open"></i> เลือกไฟล์ Excel
+                                    </button>
+                                    <button type="button" id="btn-download-template" class="btn btn-outline" title="ดาวน์โหลดไฟล์ตัวอย่าง">
+                                        <i class="fa-solid fa-file-arrow-down"></i> โหลดเทมเพลต
+                                    </button>
+                                </div>
                             </div>
                             <div id="file-loaded-banner" class="file-loaded-info d-none">
                                 <i class="fa-solid fa-circle-check text-success"></i>
@@ -134,7 +136,7 @@
                                     <input type="checkbox" id="shuffle-order-check" checked>
                                     <span><strong><i class="fa-solid fa-shuffle text-info"></i> สุ่มลำดับคิว (Shuffle Order)</strong></span>
                                 </label>
-                                <small style="color: var(--text-dim); margin-left: 26px;">สลับลำดับการทำงานไม่ให้เรียงตามรหัส นศ. เพื่อไม่ให้เวลาเรียงกัน</small>
+                                <small style="color: var(--text-dim); margin-left: 26px;">สลับลำดับการทำงานไม่ให้เรียงตามรหัส นศ.</small>
                             </div>
 
                             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 12px 0;">
@@ -151,19 +153,19 @@
                             <div id="random-delay-controls" class="form-row">
                                 <div class="form-group">
                                     <label for="min-delay-input">หน่วงต่ำสุด (วินาที)</label>
-                                    <input type="number" id="min-delay-input" min="1" max="60" value="3">
+                                    <input type="number" id="min-delay-input" min="1" max="60" value="12">
                                 </div>
                                 <div class="form-group">
                                     <label for="max-delay-input">หน่วงสูงสุด (วินาที)</label>
-                                    <input type="number" id="max-delay-input" min="2" max="120" value="8">
+                                    <input type="number" id="max-delay-input" min="2" max="120" value="35">
                                 </div>
                             </div>
 
                             <div id="fixed-delay-controls" class="setting-item d-none">
                                 <div class="setting-text">
-                                    <label for="delay-slider">หน่วงเวลาคงที่: <strong id="delay-value">2.0</strong> วินาที</label>
+                                    <label for="delay-slider">หน่วงเวลาคงที่: <strong id="delay-value">15.0</strong> วินาที</label>
                                 </div>
-                                <input type="range" id="delay-slider" min="0.5" max="10" step="0.5" value="2.0">
+                                <input type="range" id="delay-slider" min="1" max="60" step="1" value="15">
                             </div>
                         </div>
                     </div>
