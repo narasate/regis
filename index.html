@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Registration Studio | ระบบยืนยันลงทะเบียนอัตโนมัติ (ใช้ข้อมูลเดิม)</title>
+    <meta name="description" content="ระบบยืนยันสิทธิ์ลงทะเบียนอัตโนมัติจากรหัสนักเรียนในไฟล์ Excel สุ่มลำดับคิวและสุ่มเวลาธรรมชาติ">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Header -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="logo-box">
+                    <i class="fa-solid fa-bolt-lightning"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>AutoReg Studio</h1>
+                    <span>ระบบยืนยันลงทะเบียนอัตโนมัติ (สุ่มลำดับคิว • สุ่มเวลาธรรมชาติ)</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="btn-download-template" class="btn btn-outline">
+                    <i class="fa-solid fa-file-arrow-down"></i> ดาวน์โหลดเทมเพลต Excel
+                </button>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span id="system-status-text">พร้อมใช้งาน</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Layout -->
+        <main class="dashboard-container">
+            <!-- Top Metric Cards -->
+            <section class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon total"><i class="fa-solid fa-users"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">จำนวนในคิว</span>
+                        <h3 id="stat-total" class="metric-value">0</h3>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon success"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">ลงทะเบียนสำเร็จใหม่</span>
+                        <h3 id="stat-success" class="metric-value">0</h3>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon skipped"><i class="fa-solid fa-forward"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">ข้าม (เคยลงทะเบียนแล้ว)</span>
+                        <h3 id="stat-skipped" class="metric-value">0</h3>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon fail"><i class="fa-solid fa-circle-xmark"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">ไม่พบรหัส / ผิดพลาด</span>
+                        <h3 id="stat-fail" class="metric-value">0</h3>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Content Grid -->
+            <div class="content-grid">
+                <!-- Left Column: Upload, Settings & Controls -->
+                <div class="control-panel">
+                    <!-- Upload Box -->
+                    <div class="card card-glow">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-cloud-arrow-up"></i> นำเข้ารหัสนักศึกษา (Excel / CSV)</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="drop-zone" id="drop-zone">
+                                <input type="file" id="file-input" accept=".xlsx, .xls, .csv" hidden>
+                                <div class="drop-icon">
+                                    <i class="fa-solid fa-file-excel"></i>
+                                </div>
+                                <p class="drop-title">ลากไฟล์ Excel (.xlsx) หรือ CSV มาวางที่นี่</p>
+                                <span class="drop-subtitle">มีแค่คอลัมน์รหัสนักเรียน 1 คอลัมน์ก็ใช้งานได้ทันที</span>
+                                <button type="button" class="btn btn-secondary mt-3" onclick="document.getElementById('file-input').click()">
+                                    <i class="fa-solid fa-folder-open"></i> เลือกไฟล์
+                                </button>
+                            </div>
+                            <div id="file-loaded-banner" class="file-loaded-info d-none">
+                                <i class="fa-solid fa-circle-check text-success"></i>
+                                <span id="file-name-text">filename.xlsx</span>
+                                <button id="btn-clear-file" class="btn-icon" title="ยกเลิกไฟล์นี้"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Add Single Student -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-user-plus"></i> เพิ่มรหัสทีละคน (Manual Add)</h2>
+                        </div>
+                        <div class="card-body">
+                            <form id="single-add-form" class="quick-form">
+                                <div class="form-group">
+                                    <label for="input-std-id">รหัสนักเรียน / นักศึกษา <span class="req">*</span></label>
+                                    <input type="text" id="input-std-id" placeholder="ตัวอย่าง 69201410082" required autocomplete="off">
+                                </div>
+                                <button type="submit" class="btn btn-secondary w-100">
+                                    <i class="fa-solid fa-plus"></i> เพิ่มเข้าคิว
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Execution Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-sliders"></i> ตั้งค่าการสุ่มและเวลา (Settings)</h2>
+                        </div>
+                        <div class="card-body">
+                            <!-- Shuffle Order Option -->
+                            <div class="setting-item mb-3">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="shuffle-order-check" checked>
+                                    <span><strong><i class="fa-solid fa-shuffle text-info"></i> สุ่มลำดับคิว (Shuffle Order)</strong></span>
+                                </label>
+                                <small style="color: var(--text-dim); margin-left: 26px;">สลับลำดับการทำงานไม่ให้เรียงตามรหัส นศ. เพื่อไม่ให้เวลาเรียงกัน</small>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 12px 0;">
+
+                            <!-- Random Timing Option -->
+                            <div class="setting-item mb-3">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="enable-random-delay" checked>
+                                    <span><strong><i class="fa-solid fa-clock text-accent"></i> สุ่มช่วงเวลาหน่วง (Random Jitter)</strong></span>
+                                </label>
+                                <small style="color: var(--text-dim); margin-left: 26px;">สุ่มระยะเวลาพักระหว่างคน ให้เวลาในชีตกระจายตัว</small>
+                            </div>
+
+                            <div id="random-delay-controls" class="form-row">
+                                <div class="form-group">
+                                    <label for="min-delay-input">หน่วงต่ำสุด (วินาที)</label>
+                                    <input type="number" id="min-delay-input" min="1" max="60" value="3">
+                                </div>
+                                <div class="form-group">
+                                    <label for="max-delay-input">หน่วงสูงสุด (วินาที)</label>
+                                    <input type="number" id="max-delay-input" min="2" max="120" value="8">
+                                </div>
+                            </div>
+
+                            <div id="fixed-delay-controls" class="setting-item d-none">
+                                <div class="setting-text">
+                                    <label for="delay-slider">หน่วงเวลาคงที่: <strong id="delay-value">2.0</strong> วินาที</label>
+                                </div>
+                                <input type="range" id="delay-slider" min="0.5" max="10" step="0.5" value="2.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Master Controls -->
+                    <div class="card control-actions-card">
+                        <div class="card-body">
+                            <button id="btn-start" class="btn btn-primary btn-lg w-100 mb-2" disabled>
+                                <i class="fa-solid fa-play"></i> เริ่มลงทะเบียนอัตโนมัติ
+                            </button>
+                            <div class="action-buttons-row">
+                                <button id="btn-pause" class="btn btn-warning flex-1" disabled>
+                                    <i class="fa-solid fa-pause"></i> พัก
+                                </button>
+                                <button id="btn-stop" class="btn btn-danger flex-1" disabled>
+                                    <i class="fa-solid fa-stop"></i> ยกเลิก
+                                </button>
+                                <button id="btn-clear" class="btn btn-outline flex-1">
+                                    <i class="fa-solid fa-trash-can"></i> ล้าง
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Table & Logs -->
+                <div class="display-panel">
+                    <!-- Progress Card -->
+                    <div class="card">
+                        <div class="progress-section">
+                            <div class="progress-header">
+                                <div class="progress-label">
+                                    <span>ความคืบหน้ารวม</span>
+                                    <strong id="progress-percent">0%</strong>
+                                </div>
+                                <span id="current-task-name" class="task-badge">ยังไม่เริ่มรัน</span>
+                            </div>
+                            <div class="progress-bar-track">
+                                <div id="progress-bar" class="progress-bar-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Queue Table View -->
+                    <div class="card queue-card">
+                        <div class="card-header justify-between">
+                            <div class="header-title-group">
+                                <h2><i class="fa-solid fa-list-check"></i> รายการในคิวลงทะเบียน</h2>
+                                <span id="table-count-badge" class="badge">0 รายการ</span>
+                            </div>
+                            <div class="table-actions" style="display: flex; gap: 8px;">
+                                <button id="btn-shuffle-now" class="btn btn-sm btn-secondary" title="สลับลำดับคิวในตารางแบบสุ่ม">
+                                    <i class="fa-solid fa-shuffle"></i> สุ่มสลับคิวเดี๋ยวนี้
+                                </button>
+                                <button id="btn-export-results" class="btn btn-sm btn-outline">
+                                    <i class="fa-solid fa-file-export"></i> ส่งออกผลลัพธ์ (.xlsx)
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table" id="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 45px;">#</th>
+                                        <th>รหัสนักศึกษา</th>
+                                        <th>ชื่อ - นามสกุล</th>
+                                        <th>เบอร์ นศ. เดิม</th>
+                                        <th>เบอร์ ผปค. เดิม</th>
+                                        <th>ความสัมพันธ์เดิม</th>
+                                        <th>สถานะ</th>
+                                        <th>เวลาที่บันทึกสำเร็จ</th>
+                                        <th style="width: 45px;">ลบ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body">
+                                    <tr class="empty-row">
+                                        <td colspan="9">
+                                            <div class="empty-state">
+                                                <i class="fa-regular fa-folder-open"></i>
+                                                <p>ยังไม่มีข้อมูลในคิว นำเข้าไฟล์ Excel ที่มีรหัสนักเรียน หรือพิมพ์รหัสด้านซ้ายได้เลย</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Console / Live Logs -->
+                    <div class="card log-card">
+                        <div class="card-header justify-between">
+                            <h2><i class="fa-solid fa-terminal"></i> บันทึกการทำงานสด (Live Logs)</h2>
+                            <button id="btn-clear-log" class="btn btn-sm btn-outline"><i class="fa-solid fa-eraser"></i> ล้าง Log</button>
+                        </div>
+                        <div class="terminal-body" id="log-console">
+                            <div class="log-line system">[ระบบ] ยินดีต้อนรับสู่ AutoReg Studio - ระบบพร้อมรับรหัสนักเรียนเพื่อทำงาน</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- Custom Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
